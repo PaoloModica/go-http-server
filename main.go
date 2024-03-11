@@ -6,10 +6,8 @@ import (
 )
 
 func main() {
-	store := NewInMemoryPlayerStore()
-	server := &PlayerServer{store}
+	// store := NewInMemoryPlayerStore()
+	pgStore := NewPgPlayerStore("localhost", "testdb", "testusr", "testpwd")
+	server := NewPlayerServer(pgStore)
 	log.Fatal(http.ListenAndServe(":5000", server))
 }
-
-// TODO - implement PostgresPlayerStore
-// TODO - see github.com/lib/pq

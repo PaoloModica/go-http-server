@@ -51,3 +51,32 @@ func (p *PgPlayerStore) GetPlayerScore(name string) int {
 	row.Scan(&score)
 	return score
 }
+
+func (p *PgPlayerStore) GetLeague() []Player {
+	var league []Player
+
+	db := p.connect()
+	defer db.Close()
+
+	rows, err := db.Query(`SELECT p.name, p.wins FROM players p`)
+	if err != nil {
+		log.Fatalf("An error occurred while retrieving data from database. Error: %s", err.Error())
+	}
+	for rows.Next() {
+		var name string
+		var wins int
+		err := rows.Scan(&name, &wins)
+
+		if err != nil {
+			log.Fatalf("An error occurred while parsing data retrieved from DB. Error: %s", err.Error())
+			break
+		}
+
+		league = append(league, Player{name, wins})
+	}
+	if err := rows.Close(); err != nil {
+		log.Fatalf("An error occurred while closing rows: %s", err.Error())
+	}
+
+	return league
+}

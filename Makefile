@@ -6,8 +6,8 @@ start-pg:
 stop-pg:
 	docker-compose down --remove-orphans
 
-test-integration:
+test:
 	$(MAKE) start-pg
 	@sleep 5
-	go test -run server_integration_test.go
+	go test
 	$(MAKE) stop-pg
