@@ -8,18 +8,25 @@ import (
 )
 
 func TestRecordingWinsAndRetrieveThem(t *testing.T) {
-	testCases := []struct {
+	type testCase struct {
 		server *PlayerServer
 		id     string
-	}{
-		{NewPlayerServer(NewInMemoryPlayerStore()), "in-memory player store"},
-		{NewPlayerServer(NewPgPlayerStore("localhost", "testdb", "testusr", "testpwd")), "PG player store"},
+	}
+
+	pgStorePlayerServer := createPlayerServerPgStore(t)
+	fsStorePlayerServer, cleanDB := createPlayerServerFSStore(t)
+
+	defer cleanDB()
+
+	testCases := []testCase{
+		{pgStorePlayerServer, "postgres store"},
+		{fsStorePlayerServer, "file system store"},
 	}
 
 	player := "Pepper"
 	for _, testCase := range testCases {
 		t.Run(
-			fmt.Sprintf("Get Score - %s", testCase.id),
+			fmt.Sprintf("get score %s", testCase.id),
 			func(t *testing.T) {
 				for i := 0; i < 3; i++ {
 					testCase.server.ServeHTTP(httptest.NewRecorder(), newPostWinRequest(player))
@@ -32,7 +39,7 @@ func TestRecordingWinsAndRetrieveThem(t *testing.T) {
 			},
 		)
 		t.Run(
-			fmt.Sprintf("Get league - %s", testCase.id),
+			fmt.Sprintf("get league %s", testCase.id),
 			func(t *testing.T) {
 				response := httptest.NewRecorder()
 				testCase.server.ServeHTTP(response, newLeagueRequest())
@@ -45,4 +52,16 @@ func TestRecordingWinsAndRetrieveThem(t *testing.T) {
 			},
 		)
 	}
+}
+
+func createPlayerServerPgStore(t testing.TB) *PlayerServer {
+	store := NewPgPlayerStore("localhost", "testdb", "testusr", "testpwd")
+	return NewPlayerServer(store)
+}
+
+func createPlayerServerFSStore(t testing.TB) (*PlayerServer, func()) {
+	database, cleanDatabase := createTempFile(t, `[]`)
+	store, err := NewFileSystemPlayerStore(database)
+	assertNoError(t, err)
+	return NewPlayerServer(store), cleanDatabase
 }

@@ -52,13 +52,13 @@ func (p *PgPlayerStore) GetPlayerScore(name string) int {
 	return score
 }
 
-func (p *PgPlayerStore) GetLeague() []Player {
+func (p *PgPlayerStore) GetLeague() League {
 	var league []Player
 
 	db := p.connect()
 	defer db.Close()
 
-	rows, err := db.Query(`SELECT p.name, p.wins FROM players p`)
+	rows, err := db.Query(`SELECT p.name, p.wins FROM players p ORDER BY wins`)
 	if err != nil {
 		log.Fatalf("An error occurred while retrieving data from database. Error: %s", err.Error())
 	}

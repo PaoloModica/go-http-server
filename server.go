@@ -17,7 +17,7 @@ type PlayerServer struct {
 type PlayerStore interface {
 	GetPlayerScore(player string) int
 	RecordWin(name string)
-	GetLeague() []Player
+	GetLeague() League
 }
 
 type Player struct {
